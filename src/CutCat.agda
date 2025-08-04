@@ -26,7 +26,7 @@ CutCat : Category lzero lzero
 Category.Obj CutCat      = ℕ
 Category.Hom CutCat      = λ m n → m ≤ n
 Category.id  CutCat      = λ m → ≤-refl
-Category._∘_ CutCat      = λ {A}{B}{C} f g → ≤-trans g f
+Category._∘_ CutCat      = λ f g → ≤-trans g f
 Category.id-left  CutCat = λ f → refl
 Category.id-right CutCat = λ f → refl
 Category.assoc    CutCat = λ h g f → refl
