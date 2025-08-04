@@ -1,16 +1,16 @@
 module CutCat where
 
 open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
-open import Data.Nat       using (ℕ)
+open import Data.Nat       using (ℕ; zero; suc)
 open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
--- Define ≤-trans using an absurd pattern on the left-hand side
+-- Define ≤-trans in a way Agda accepts
 ≤-trans : ∀ {i j k : ℕ} → i ≤ j → j ≤ k → i ≤ k
-≤-trans z≤n       _               = z≤n
-≤-trans (s≤s p) ()
+≤-trans z≤n       _             = z≤n
+≤-trans (s≤s p) (s≤s q)         = s≤s (≤-trans p q)
 
--- Identity proofs for ≤-trans
+-- Left/right identity for ≤-trans
 ≤-id-left : ∀ {m n} (p : m ≤ n) → ≤-trans z≤n p ≡ p
 ≤-id-left z≤n     = refl
 ≤-id-left (s≤s p) = cong s≤s (≤-id-left p)
