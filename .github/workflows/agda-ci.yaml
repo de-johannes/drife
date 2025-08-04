@@ -15,5 +15,5 @@ jobs:
           agda-stdlib-version: recommended
 
       # Hauptmodul checken (siehe oben: All.agda importiert alles)
-      - run: agda --ignore-interfaces --without-K All.agda
+      - run: agda --ignore-interfaces --without-K -l drife All.agda
         working-directory: src
