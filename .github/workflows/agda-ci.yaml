@@ -22,4 +22,4 @@ jobs:
       - name: Compile project
         working-directory: src
         run: |
-          agda --ignore-interfaces --without-K -l drife All.agda
+          agda --ignore-interfaces --without-K -i . All.agda
