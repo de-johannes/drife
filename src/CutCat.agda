@@ -1,9 +1,10 @@
 module CutCat where
 
-open import Agda.Primitive using (Level; lzero)
+open import Agda.Primitive using (Level; lzero; lsuc)
 open import Data.Nat       using (ℕ)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Data.Nat.Base  using (_≤_; z≤n; s≤s; ≤-refl; ≤-trans)
+open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
+open import Data.Nat.Properties using (≤-refl; ≤-trans)
 
 -- Category record with explicit levels
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
@@ -24,7 +25,7 @@ open Category
 CutCat : Category lzero lzero
 Category.Obj CutCat      = ℕ
 Category.Hom CutCat      = λ m n → m ≤ n
-Category.id  CutCat      = λ m → ≤-refl m
+Category.id  CutCat      = λ m → ≤-refl
 Category._∘_ CutCat      = λ {A}{B}{C} f g → ≤-trans g f
 Category.id-left  CutCat = λ f → refl
 Category.id-right CutCat = λ f → refl
