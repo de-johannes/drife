@@ -7,7 +7,7 @@ open import Relation.Binary.PropositionalEquality
                                                using (_≡_; refl; cong)
 
 ------------------------------------------------------------------------
--- 1. Primal Distinction (Cut‐Baum)
+-- 1. Primal Distinction (Cut-Baum) — Emergenz von ℕ & Bool
 ------------------------------------------------------------------------
 
 data Cut : Set where
@@ -23,7 +23,7 @@ neg ◇        = mark ◇
 neg (mark _) = ◇
 
 ------------------------------------------------------------------------
--- 2. Lemmata für die Ordnung ≤
+-- 2. Ordnung auf ℕ: ≤ plus Lemmata
 ------------------------------------------------------------------------
 
 refl≤ : ∀ n → n ≤ n
@@ -42,7 +42,6 @@ refl≤ (suc n) = s≤s (refl≤ n)
 ≤-id-right z≤n     = refl
 ≤-id-right (s≤s p) = cong s≤s (≤-id-right p)
 
--- Assoziativität von ≤-trans
 trans-assoc
   : ∀ {A B C D} (f : A ≤ B) (g : B ≤ C) (h : C ≤ D)
     → ≤-trans (≤-trans f g) h ≡ ≤-trans f (≤-trans g h)
@@ -50,7 +49,7 @@ trans-assoc z≤n      _         _         = refl
 trans-assoc (s≤s p) (s≤s q) (s≤s r) = cong s≤s (trans-assoc p q r)
 
 ------------------------------------------------------------------------
--- 3. Kategorie‐Record
+-- 3. Kategorien‐Record
 ------------------------------------------------------------------------
 
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
@@ -72,26 +71,28 @@ open Category public
 ------------------------------------------------------------------------
 
 CutCat : Category lzero lzero
-CutCat = record
-  { Obj      = ℕ
-  ; Hom      = _≤_
-  ; id       = refl≤
-  ; _∘_      = λ {A}{B}{C} (g : B ≤ C) (f : A ≤ B) → ≤-trans f g
-  ; id-left  = ≤-id-left
-  ; id-right = ≤-id-right
-  ; assoc    = assocField
-  }
-  where
-    -- das Assoziativitäts-Feld erwartet jetzt eine Gleichung!
-    assocField
-      : {A B C D : ℕ}
-      → (h : C ≤ D) → (g : B ≤ C) → (f : A ≤ B)
-      → _∘_ CutCat h (_∘_ CutCat g f)
-      ≡ _∘_ CutCat (_∘_ CutCat h g) f
-    assocField h g f = trans-assoc f g h
+
+-- 4.1 Objekte
+CutCat .Obj = ℕ
+
+-- 4.2 Morphismen
+CutCat .Hom = λ m n → m ≤ n
+
+-- 4.3 Identität
+CutCat .id A = refl≤ A
+
+-- 4.4 Komposition: erst f, dann g
+CutCat ._∘_ {A} {B} {C} (g : B ≤ C) (f : A ≤ B) = ≤-trans f g
+
+-- 4.5 Einheitsgesetze
+CutCat .id-left  {A} {B} f = ≤-id-left f
+CutCat .id-right {A} {B} f = ≤-id-right f
+
+-- 4.6 Assoziativität
+CutCat .assoc {A} {B} {C} {D} h g f = trans-assoc f g h
 
 ------------------------------------------------------------------------
--- 5. Ledger-Funktor ℕ → Cut
+-- 5. LedgerCut-Funktor ℕ → Cut
 ------------------------------------------------------------------------
 
 ledgerCut : ℕ → Cut
@@ -104,5 +105,14 @@ depth-lemma (suc n) = cong suc (depth-lemma n)
 
 FunctorHom
   : ∀ {m n} → m ≤ n → depth (ledgerCut m) ≤ depth (ledgerCut n)
-FunctorHom {m} {n} p with depth-lemma m | depth-lemma n
+FunctorHom p with depth-lemma m | depth-lemma n
 ... | refl | refl = p
+  where
+    -- die mit `{m}` und `{n}` impliziten sind jetzt im Scope!
+    m = m
+    n = n
+
+------------------------------------------------------------------------
+-- Kompilations-Test:
+--   agda CutCat.agda  → Exit-Code 0
+------------------------------------------------------------------------
