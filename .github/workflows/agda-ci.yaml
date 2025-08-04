@@ -9,19 +9,11 @@ on:
 jobs:
   agda-check:
     runs-on: ubuntu-latest
+    container: "gallais/agda:2.6.4"
     steps:
       - uses: actions/checkout@v3
-
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y agda agda-stdlib
-
-      - name: Verify Agda files
-        working-directory: src
-        run: |
-          # Kompiliere alle .agda-Dateien (ohne HTML-Ausgabe)
-          agda --ignore-interfaces --without-K *.agda
+      - run: agda --ignore-interfaces --without-K src/*.agda
+      - run: agda --html --ignore-interfaces *.agda
 
       - name: Generate HTML (optional)
         working-directory: src
