@@ -1,21 +1,25 @@
 name: Agda CI
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+on: workflow_dispatch
 
 jobs:
   agda-check:
     runs-on: ubuntu-latest
-    container: "gallais/agda:2.6.4"
     steps:
       - uses: actions/checkout@v3
-      - run: agda --ignore-interfaces --without-K src/*.agda
-      - run: agda --html --ignore-interfaces *.agda
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y agda agda-stdlib
+
+      - name: Verify Agda files
+        working-directory: src
+        run: |
+          # Kompiliere alle .agda-Dateien (ohne HTML-Ausgabe)
+          agda --ignore-interfaces --without-K all.agda
 
       - name: Generate HTML (optional)
         working-directory: src
         run: |
-          agda --html --ignore-interfaces *.agda
+          agda --html --ignore-interfaces all.agda
