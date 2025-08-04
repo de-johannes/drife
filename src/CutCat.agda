@@ -2,14 +2,15 @@ module CutCat where
 
 open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
 open import Data.Nat       using (ℕ)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
--- Our own identity lemmas for ≤-trans
+-- Define ≤-trans ourselves (since we want full control)
 ≤-trans : ∀ {i j k : ℕ} → i ≤ j → j ≤ k → i ≤ k
 ≤-trans z≤n       _          = z≤n
 ≤-trans (s≤s p) (s≤s q) = s≤s (≤-trans p q)
 
+-- Prove left and right identity for ≤-trans
 ≤-id-left : ∀ {m n} (p : m ≤ n) → ≤-trans z≤n p ≡ p
 ≤-id-left z≤n     = refl
 ≤-id-left (s≤s p) = cong s≤s (≤-id-left p)
@@ -18,7 +19,7 @@ open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
 ≤-id-right z≤n     = refl
 ≤-id-right (s≤s p) = cong s≤s (≤-id-right p)
 
--- Category record with explicit levels
+-- Category record
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
   field
     Obj      : Set ℓ₁
@@ -33,7 +34,7 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
 
 open Category
 
--- CutCat: free thin category on ℕ with Hom(m,n) ≡ (m ≤ n)
+-- CutCat: free thin category on ℕ
 CutCat : Category lzero lzero
 Category.Obj CutCat      = ℕ
 Category.Hom CutCat      = λ m n → m ≤ n
