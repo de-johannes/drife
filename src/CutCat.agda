@@ -1,23 +1,22 @@
 module CutCat where
 
 open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
-open import Data.Nat       using (ℕ; zero; suc)
+open import Data.Nat       using (ℕ)
 open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
--- Define ≤-trans in a way Agda accepts
+-- Define ≤-trans (covers only valid constructor patterns)
 ≤-trans : ∀ {i j k : ℕ} → i ≤ j → j ≤ k → i ≤ k
 ≤-trans z≤n       _             = z≤n
 ≤-trans (s≤s p) (s≤s q)         = s≤s (≤-trans p q)
 
--- Left/right identity for ≤-trans
+-- Prove left and right identity for ≤-trans
 ≤-id-left : ∀ {m n} (p : m ≤ n) → ≤-trans z≤n p ≡ p
 ≤-id-left z≤n     = refl
 ≤-id-left (s≤s p) = cong s≤s (≤-id-left p)
 
 ≤-id-right : ∀ {m n} (p : m ≤ n) → ≤-trans p z≤n ≡ p
-≤-id-right z≤n     = refl
-≤-id-right (s≤s p) = cong s≤s (≤-id-right p)
+≤-id-right z≤n = refl
 
 -- Category record
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
