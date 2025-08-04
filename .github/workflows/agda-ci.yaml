@@ -8,12 +8,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Installiere Agda (latest) + die empfohlene Standardbibliothek
       - uses: wenkokke/setup-agda@v2
         with:
           agda-version: latest
           agda-stdlib-version: recommended
 
-      # Hauptmodul checken (siehe oben: All.agda importiert alles)
-      - run: agda --ignore-interfaces --without-K -l drife All.agda
+      - name: Create .agda-lib for project
         working-directory: src
+        run: |
+          echo "name: drife" > drife.agda-lib
+          echo "include: ." >> drife.agda-lib
+          echo "depend: standard-library" >> drife.agda-lib
+
+      - name: Register drife.agda-lib
+        working-directory: src
+        run: |
+          echo "$PWD/drife.agda-lib" >> $HOME/.agda/libraries
+          echo "drife" >> $HOME/.agda/defaults
+
+      - name: Verify Agda files
+        working-directory: src
+        run: agda --ignore-interfaces --without-K -l drife All.agda
+
