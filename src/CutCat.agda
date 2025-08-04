@@ -1,9 +1,4 @@
-------------------------------------------------------------------------
--- CutCatFull.agda
-------------------------------------------------------------------------
-{-# OPTIONS --without-K #-}
-
-module CutCatFull where
+module CutCat where
 
 open import Agda.Primitive            using (Level; lzero; lsuc; _⊔_)
 open import Data.Nat                  using (ℕ; zero; suc)
