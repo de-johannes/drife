@@ -7,10 +7,11 @@ open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
 open import Data.Nat.Properties using
   ( ≤-refl
   ; ≤-trans
-  ; ≤-identityˡ
-  ; ≤-identityʳ
+  ; ≤-transˡ-identity
+  ; ≤-transʳ-identity
   )
 
+-- A simple Category record
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
   field
     Obj      : Set ℓ₁
@@ -25,11 +26,12 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
 
 open Category
 
+-- CutCat: free thin category on ℕ with Hom(m,n) ≡ (m ≤ n)
 CutCat : Category lzero lzero
 Category.Obj CutCat      = ℕ
 Category.Hom CutCat      = λ m n → m ≤ n
 Category.id  CutCat      = λ m → ≤-refl
 Category._∘_ CutCat      = λ f g → ≤-trans g f
-Category.id-left  CutCat = λ f → ≤-identityʳ f
-Category.id-right CutCat = λ f → ≤-identityˡ f
+Category.id-left  CutCat = λ f → ≤-transʳ-identity f
+Category.id-right CutCat = λ f → ≤-transˡ-identity f
 Category.assoc    CutCat = λ h g f → refl
