@@ -5,10 +5,9 @@ open import Data.Nat       using (ℕ)
 open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
--- Define ≤-trans with proper impossible pattern
+-- Define ≤-trans (covers all valid patterns)
 ≤-trans : ∀ {i j k : ℕ} → i ≤ j → j ≤ k → i ≤ k
 ≤-trans z≤n       _            = z≤n
-≤-trans (s≤s p) ()              -- impossible case
 ≤-trans (s≤s p) (s≤s q)        = s≤s (≤-trans p q)
 
 -- Prove left and right identity for ≤-trans
