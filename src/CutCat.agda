@@ -16,10 +16,10 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 ≤-id-left z≤n     = refl
 ≤-id-left (s≤s p) = cong s≤s (≤-id-left p)
 
--- Right identity (s≤s case is uninhabited)
+-- Right identity, impossible case caught by absurd pattern on LHS
 ≤-id-right : ∀ {m n} (p : m ≤ n) → ≤-trans p z≤n ≡ p
 ≤-id-right z≤n    = refl
-≤-id-right (s≤s p) = ()
+≤-id-right (s≤s ())
 
 -- Category record
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
