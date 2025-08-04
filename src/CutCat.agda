@@ -1,13 +1,10 @@
 module CutCat where
 
-open import Agda.Primitive using (Level; lzero)
-open import Data.Nat         using (ℕ; suc)                          -- suc jetzt hier
-open import Data.Nat.Properties
-  using (_≤_; z≤n; s≤s; ≤-refl; ≤-trans)                             -- ≤-refl/≤-trans hier
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl)
+open import Agda.Primitive using (Level; lzero; _⊔_)
+open import Data.Nat using (ℕ; suc; _≤_)
+open import Data.Nat.Properties using (z≤′n; s≤′s; ≤-refl; ≤-trans)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
--- Minimal Category record
 record Category (ℓ₁ ℓ₂ : Level) : Set (suc (ℓ₁ ⊔ ℓ₂)) where
   field
     Obj      : Set ℓ₁
@@ -22,7 +19,6 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (suc (ℓ₁ ⊔ ℓ₂)) where
 
 open Category
 
--- Die freie, dünne Kategorie auf ℕ mit Hom(m,n) ≡ (m ≤ n)
 CutCat : Category lzero lzero
 CutCat .Obj      = ℕ
 CutCat .Hom      = λ m n → m ≤ n
