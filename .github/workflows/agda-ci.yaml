@@ -13,6 +13,12 @@ jobs:
           agda-version: latest
           agda-stdlib-version: recommended
 
+      - name: Register drife.agda-lib
+        working-directory: src
+        run: |
+          echo "$PWD/drife.agda-lib" >> $HOME/.agda/libraries
+          echo drife > $HOME/.agda/defaults
+
       - name: Compile project
         working-directory: src
         run: |
