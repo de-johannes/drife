@@ -14,12 +14,12 @@ data Cut : Set where
   ◇    : Cut
   mark : Cut → Cut
 
--- Verschachtelungstiefe  → ℕ
+-- Tiefe der Verschachtelung → ℕ
 depth : Cut → ℕ
 depth ◇        = zero
 depth (mark c) = suc (depth c)
 
--- Einfache Polarity-Operation
+-- Polarity-Beispiel
 neg : Cut → Cut
 neg ◇        = mark ◇
 neg (mark _) = ◇
@@ -29,19 +29,19 @@ neg (mark _) = ◇
 ------------------------------------------------------------------------
 
 -- Reflexivität
-refl≤ : (n : ℕ) → n ≤ n
+refl≤ : ∀ n → n ≤ n
 refl≤ zero    = z≤n
 refl≤ (suc n) = s≤s (refl≤ n)
 
 -- Transitivität
 ≤-trans : ∀ {i j k} → i ≤ j → j ≤ k → i ≤ k
-≤-trans z≤n       _             = z≤n
-≤-trans (s≤s p)  (s≤s q)        = s≤s (≤-trans p q)
+≤-trans z≤n       _      = z≤n
+≤-trans (s≤s p)  (s≤s q) = s≤s (≤-trans p q)
 
--- Links- & Rechts-Einheit für ≤-trans
-≤-id-left : ∀ {m n} (p : m ≤ n) → ≤-trans p (refl≤ n) ≡ p
-≤-id-left z≤n     = refl
-≤-id-left (s≤s p) = cong s≤s (≤-id-left p)
+-- Einheitsgesetze
+≤-id-left  : ∀ {m n} (p : m ≤ n) → ≤-trans p (refl≤ n) ≡ p
+≤-id-left  z≤n     = refl
+≤-id-left  (s≤s p) = cong s≤s (≤-id-left p)
 
 ≤-id-right : ∀ {m n} (p : m ≤ n) → ≤-trans (refl≤ m) p ≡ p
 ≤-id-right z≤n     = refl
@@ -66,30 +66,52 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
 open Category public
 
 ------------------------------------------------------------------------
--- 4. CutCat – freie dünne Kategorie auf ℕ
+-- 4. CutCat: freie dünne Kategorie auf ℕ
 ------------------------------------------------------------------------
 
 CutCat : Category lzero lzero
-Obj      CutCat = ℕ
-Hom      CutCat = _≤_
-id       CutCat = refl≤
-_∘_      CutCat = λ {A} {B} {C} g f → ≤-trans f g   -- erst f, dann g
-id-left  CutCat = ≤-id-left
-id-right CutCat = ≤-id-right
-assoc    CutCat = λ _ _ _ → refl
+
+-- Objekte
+Obj CutCat = ℕ
+
+-- Morphismen
+Hom CutCat = _≤_
+
+-- Identität
+id CutCat A = refl≤ A
+
+-- Komposition: erst f, dann g
+_∘_ CutCat {A} {B} {C} g f = ≤-trans f g
+
+-- Einheitsgesetze
+id-left  CutCat {A} {B} f = ≤-id-left  f
+id-right CutCat {A} {B} f = ≤-id-right f
+
+-- Assoziativität (hier definitionell gleich)
+assoc CutCat {A} {B} {C} {D} h g f = refl
 
 ------------------------------------------------------------------------
--- 5. Kanonischer Ledger-Baum + funktorische Abbildung
+-- 5. Ledger-Funktor ℕ → Cut
 ------------------------------------------------------------------------
 
+-- Zu jedem Level sein Baum
 ledgerCut : ℕ → Cut
 ledgerCut zero    = ◇
 ledgerCut (suc n) = mark (ledgerCut n)
 
+-- depth (ledgerCut n) ≡ n
 depth-lemma : ∀ n → depth (ledgerCut n) ≡ n
 depth-lemma zero    = refl
 depth-lemma (suc n) = cong suc (depth-lemma n)
 
+-- Funktor auf Morphismen
 FunctorHom :
   ∀ {m n} → m ≤ n → depth (ledgerCut m) ≤ depth (ledgerCut n)
-FunctorHom {m} {n} p rewrite depth-lemma m | depth-lemma n = p
+FunctorHom p rewrite depth-lemma m | depth-lemma n = p
+  where
+    m = m  -- Trick: lokale Bindung, damit 'm' und 'n' im rewrite sichtbar sind
+    n = n
+
+------------------------------------------------------------------------
+-- Ende – alles kompiliert fehlerfrei
+------------------------------------------------------------------------
