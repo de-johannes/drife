@@ -4,9 +4,13 @@ open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
 open import Data.Nat       using (ℕ)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
-open import Data.Nat.Properties using (≤-refl; ≤-trans)
+open import Data.Nat.Properties using
+  ( ≤-refl
+  ; ≤-trans
+  ; ≤-identityˡ
+  ; ≤-identityʳ
+  )
 
--- Category record with explicit levels
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
   field
     Obj      : Set ℓ₁
@@ -21,12 +25,11 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
 
 open Category
 
--- CutCat: free thin category on ℕ with Hom(m,n) ≡ (m ≤ n)
 CutCat : Category lzero lzero
 Category.Obj CutCat      = ℕ
 Category.Hom CutCat      = λ m n → m ≤ n
 Category.id  CutCat      = λ m → ≤-refl
 Category._∘_ CutCat      = λ f g → ≤-trans g f
-Category.id-left  CutCat = λ f → refl
-Category.id-right CutCat = λ f → refl
+Category.id-left  CutCat = λ f → ≤-identityʳ f
+Category.id-right CutCat = λ f → ≤-identityˡ f
 Category.assoc    CutCat = λ h g f → refl
