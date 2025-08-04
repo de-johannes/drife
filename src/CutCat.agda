@@ -14,12 +14,10 @@ data Cut : Set where
   ◇    : Cut
   mark : Cut → Cut
 
--- Tiefe der Verschachtelung → ℕ
 depth : Cut → ℕ
 depth ◇        = zero
 depth (mark c) = suc (depth c)
 
--- Einfache Polarity‐Operation
 neg : Cut → Cut
 neg ◇        = mark ◇
 neg (mark _) = ◇
@@ -28,17 +26,14 @@ neg (mark _) = ◇
 -- 2. Lemmata für die Ordnung ≤
 ------------------------------------------------------------------------
 
--- Reflexivität
 refl≤ : ∀ n → n ≤ n
 refl≤ zero    = z≤n
 refl≤ (suc n) = s≤s (refl≤ n)
 
--- Transitivität
 ≤-trans : ∀ {i j k} → i ≤ j → j ≤ k → i ≤ k
 ≤-trans z≤n       _      = z≤n
 ≤-trans (s≤s p)  (s≤s q) = s≤s (≤-trans p q)
 
--- Einheitsgesetze
 ≤-id-left  : ∀ {m n} (p : m ≤ n) → ≤-trans p (refl≤ n) ≡ p
 ≤-id-left  z≤n     = refl
 ≤-id-left  (s≤s p) = cong s≤s (≤-id-left p)
@@ -55,7 +50,7 @@ trans-assoc z≤n      _         _         = refl
 trans-assoc (s≤s p) (s≤s q) (s≤s r) = cong s≤s (trans-assoc p q r)
 
 ------------------------------------------------------------------------
--- 3. Das allgemeine Kategorie‐Record
+-- 3. Kategorie‐Record
 ------------------------------------------------------------------------
 
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
@@ -73,27 +68,26 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
 open Category public
 
 ------------------------------------------------------------------------
--- 4. CutCat: die freie, dünne Kategorie auf ℕ
+-- 4. CutCat: freie dünne Kategorie auf ℕ
 ------------------------------------------------------------------------
 
 CutCat : Category lzero lzero
-CutCat = record 
+CutCat = record
   { Obj      = ℕ
   ; Hom      = _≤_
   ; id       = refl≤
-  ; _∘_      = transField
+  ; _∘_      = λ {A}{B}{C} (g : B ≤ C) (f : A ≤ B) → ≤-trans f g
   ; id-left  = ≤-id-left
   ; id-right = ≤-id-right
   ; assoc    = assocField
   }
   where
-    transField : {A B C : ℕ} → (g : B ≤ C) → (f : A ≤ B) → A ≤ C
-    transField g f = ≤-trans f g
-
+    -- das Assoziativitäts-Feld erwartet jetzt eine Gleichung!
     assocField
       : {A B C D : ℕ}
       → (h : C ≤ D) → (g : B ≤ C) → (f : A ≤ B)
-      → A ≤ D
+      → _∘_ CutCat h (_∘_ CutCat g f)
+      ≡ _∘_ CutCat (_∘_ CutCat h g) f
     assocField h g f = trans-assoc f g h
 
 ------------------------------------------------------------------------
