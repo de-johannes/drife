@@ -1,31 +1,31 @@
 module CutCat where
 
-open import Agda.Primitive            using (Level ; lzero ; lsuc ; _⊔_)
-open import Data.Nat                  using (ℕ ; zero ; suc)
-open import Data.Nat.Base             using (_≤_ ; z≤n ; s≤s)
+open import Agda.Primitive            using (Level; lzero; lsuc; _⊔_)
+open import Data.Nat                  using (ℕ; zero; suc)
+open import Data.Nat.Base             using (_≤_; z≤n; s≤s)
 open import Relation.Binary.PropositionalEquality
-                                     using (_≡_ ; refl ; cong)
+                                     using (_≡_; refl; cong)
 
 ------------------------------------------------------------------------
--- 1. Primal Distinction  (Cut-Baum)
+-- 1. Primal Distinction (Cut‐Baum)
 ------------------------------------------------------------------------
 
 data Cut : Set where
   ◇    : Cut
   mark : Cut → Cut
 
--- Tiefe der Verschachtelung → ℕ
+-- Verschachtelungstiefe → ℕ
 depth : Cut → ℕ
 depth ◇        = zero
 depth (mark c) = suc (depth c)
 
--- Polarity-Beispiel
+-- einfache Polarity‐Operation
 neg : Cut → Cut
 neg ◇        = mark ◇
 neg (mark _) = ◇
 
 ------------------------------------------------------------------------
--- 2. Basisbeweise zu ≤
+-- 2. Hilfsbeweise für ≤
 ------------------------------------------------------------------------
 
 -- Reflexivität
@@ -48,7 +48,7 @@ refl≤ (suc n) = s≤s (refl≤ n)
 ≤-id-right (s≤s p) = cong s≤s (≤-id-right p)
 
 ------------------------------------------------------------------------
--- 3. Kategorie-Record
+-- 3. Kategorie‐Record
 ------------------------------------------------------------------------
 
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
@@ -71,47 +71,31 @@ open Category public
 
 CutCat : Category lzero lzero
 
--- Objekte
 Obj CutCat = ℕ
 
--- Morphismen
 Hom CutCat = _≤_
 
--- Identität
 id CutCat A = refl≤ A
 
--- Komposition: erst f, dann g
 _∘_ CutCat {A} {B} {C} g f = ≤-trans f g
 
--- Einheitsgesetze
 id-left  CutCat {A} {B} f = ≤-id-left  f
 id-right CutCat {A} {B} f = ≤-id-right f
 
--- Assoziativität (hier definitionell gleich)
-assoc CutCat {A} {B} {C} {D} h g f = refl
+assoc    CutCat {A} {B} {C} {D} h g f = refl
 
 ------------------------------------------------------------------------
--- 5. Ledger-Funktor ℕ → Cut
+-- 5. Ledger‐Functor ℕ → Cut
 ------------------------------------------------------------------------
 
--- Zu jedem Level sein Baum
 ledgerCut : ℕ → Cut
 ledgerCut zero    = ◇
 ledgerCut (suc n) = mark (ledgerCut n)
 
--- depth (ledgerCut n) ≡ n
 depth-lemma : ∀ n → depth (ledgerCut n) ≡ n
 depth-lemma zero    = refl
 depth-lemma (suc n) = cong suc (depth-lemma n)
 
--- Funktor auf Morphismen
-FunctorHom :
-  ∀ {m n} → m ≤ n → depth (ledgerCut m) ≤ depth (ledgerCut n)
-FunctorHom p rewrite depth-lemma m | depth-lemma n = p
-  where
-    m = m  -- Trick: lokale Bindung, damit 'm' und 'n' im rewrite sichtbar sind
-    n = n
-
-------------------------------------------------------------------------
--- Ende – alles kompiliert fehlerfrei
-------------------------------------------------------------------------
+FunctorHom : ∀ {m n} (p : m ≤ n) → depth (ledgerCut m) ≤ depth (ledgerCut n)
+FunctorHom {m} {n} p with depth-lemma m | depth-lemma n
+... | refl | refl = p
