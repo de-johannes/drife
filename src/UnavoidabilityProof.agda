@@ -33,7 +33,7 @@ postulate
   selfSubversion :
     ∀ {Γ Δ : List Formula} {p : P}
     → derive (sequent Γ Δ)
-    → derive (sequent (atom (D0 p)) Δ)
+    → derive (sequent ((atom (D0 p)) ∷ []) Δ)
 
 ------------------------------------------------------------------------
 -- 4. Unavoidability Theorem
@@ -42,7 +42,7 @@ postulate
 postulate
   unavoidability :
     ∀ {Γ Δ : List Formula} {p : P}
-    → Δ ≡ (not (atom (D0 p)) ∷ [])
+    → Δ ≡ ((not (atom (D0 p))) ∷ [])
     → ¬ derive (sequent Γ Δ)
 
 ------------------------------------------------------------------------
