@@ -2,7 +2,7 @@ module CutCat where
 
 open import Agda.Primitive using (Level; lzero; _⊔_)
 open import Data.Nat using (ℕ; suc; _≤_)
-open import Data.Nat.Properties using (z≤′n; s≤′s; ≤-refl; ≤-trans)
+open import Data.Nat.Properties using (≤-refl; ≤-trans)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 
 record Category (ℓ₁ ℓ₂ : Level) : Set (suc (ℓ₁ ⊔ ℓ₂)) where
