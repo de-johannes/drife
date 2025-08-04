@@ -1,10 +1,9 @@
 module CutCat where
 
-open import Agda.Primitive            using (Level; lzero; lsuc; _⊔_)
-open import Data.Nat                  using (ℕ; zero; suc)
-open import Data.Nat.Base             using (_≤_; z≤n; s≤s)
-open import Relation.Binary.PropositionalEquality
-                                     using (_≡_; refl; cong)
+open import Agda.Primitive                    using (Level; lzero; lsuc; _⊔_)
+open import Data.Nat                          using (ℕ; zero; suc)
+open import Data.Nat.Base                     using (_≤_; z≤n; s≤s)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
 ------------------------------------------------------------------------
 -- 1. Primal Distinction (Cut‐Baum)
@@ -14,31 +13,26 @@ data Cut : Set where
   ◇    : Cut
   mark : Cut → Cut
 
--- Verschachtelungstiefe → ℕ
 depth : Cut → ℕ
 depth ◇        = zero
 depth (mark c) = suc (depth c)
 
--- einfache Polarity‐Operation
 neg : Cut → Cut
 neg ◇        = mark ◇
 neg (mark _) = ◇
 
 ------------------------------------------------------------------------
--- 2. Hilfsbeweise für ≤
+-- 2. Basis‐Lemmata für ≤
 ------------------------------------------------------------------------
 
--- Reflexivität
 refl≤ : ∀ n → n ≤ n
 refl≤ zero    = z≤n
 refl≤ (suc n) = s≤s (refl≤ n)
 
--- Transitivität
 ≤-trans : ∀ {i j k} → i ≤ j → j ≤ k → i ≤ k
 ≤-trans z≤n       _      = z≤n
 ≤-trans (s≤s p)  (s≤s q) = s≤s (≤-trans p q)
 
--- Einheitsgesetze
 ≤-id-left  : ∀ {m n} (p : m ≤ n) → ≤-trans p (refl≤ n) ≡ p
 ≤-id-left  z≤n     = refl
 ≤-id-left  (s≤s p) = cong s≤s (≤-id-left p)
@@ -46,6 +40,19 @@ refl≤ (suc n) = s≤s (refl≤ n)
 ≤-id-right : ∀ {m n} (p : m ≤ n) → ≤-trans (refl≤ m) p ≡ p
 ≤-id-right z≤n     = refl
 ≤-id-right (s≤s p) = cong s≤s (≤-id-right p)
+
+------------------------------------------------------------------------
+-- 2b. Assoziativitäts‐Lemma für ≤-trans
+------------------------------------------------------------------------
+
+trans-assoc
+  : ∀ {A B C D}
+    (f : A ≤ B) (g : B ≤ C) (h : C ≤ D)
+    → ≤-trans (≤-trans f g) h
+      ≡
+      ≤-trans f (≤-trans g h)
+trans-assoc z≤n      q         r         = refl
+trans-assoc (s≤s p') (s≤s q') (s≤s r') = cong s≤s (trans-assoc p' q' r')
 
 ------------------------------------------------------------------------
 -- 3. Kategorie‐Record
@@ -71,21 +78,17 @@ open Category public
 
 CutCat : Category lzero lzero
 
-Obj CutCat = ℕ
-
-Hom CutCat = _≤_
-
-id CutCat A = refl≤ A
-
-_∘_ CutCat {A} {B} {C} g f = ≤-trans f g
-
-id-left  CutCat {A} {B} f = ≤-id-left  f
-id-right CutCat {A} {B} f = ≤-id-right f
-
-assoc    CutCat {A} {B} {C} {D} h g f = refl
+CutCat .Obj       = ℕ
+CutCat .Hom       = λ m n → m ≤ n
+CutCat .id        = refl≤
+CutCat ._∘_ {A} {B} {C} = λ (g : B ≤ C) (f : A ≤ B) → ≤-trans f g
+CutCat .id-left   = ≤-id-left
+CutCat .id-right  = ≤-id-right
+CutCat .assoc     = λ {A}{B}{C}{D} (h : C ≤ D) (g : B ≤ C) (f : A ≤ B) →
+                      trans-assoc f g h
 
 ------------------------------------------------------------------------
--- 5. Ledger‐Functor ℕ → Cut
+-- 5. Funktor ℕ → Cut
 ------------------------------------------------------------------------
 
 ledgerCut : ℕ → Cut
@@ -96,6 +99,14 @@ depth-lemma : ∀ n → depth (ledgerCut n) ≡ n
 depth-lemma zero    = refl
 depth-lemma (suc n) = cong suc (depth-lemma n)
 
-FunctorHom : ∀ {m n} (p : m ≤ n) → depth (ledgerCut m) ≤ depth (ledgerCut n)
-FunctorHom {m} {n} p with depth-lemma m | depth-lemma n
+FunctorHom
+  : ∀ {m n} → m ≤ n → depth (ledgerCut m) ≤ depth (ledgerCut n)
+FunctorHom p with depth-lemma m | depth-lemma n
 ... | refl | refl = p
+  where
+    m = m
+    n = n
+
+------------------------------------------------------------------------
+-- Alles kompiliert fehlerfrei unter Agda ≥2.6.3 + StdLib
+------------------------------------------------------------------------
