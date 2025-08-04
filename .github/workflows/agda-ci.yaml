@@ -8,28 +8,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Install Agda
         run: |
           sudo apt update
-          sudo apt install -y agda agda-stdlib || true
+          sudo apt install -y agda git
 
-      - name: Find Agda standard library path
-        run: |
-          find /usr -name standard-library.agda-lib || true
-
-      - name: Set up Agda library file
+      - name: Fetch Agda standard library
         working-directory: src
         run: |
-          if [ -f /usr/share/agda-stdlib/standard-library.agda-lib ]; then
-            echo '/usr/share/agda-stdlib/standard-library.agda-lib' > agda-lib;
-          elif [ -f /usr/lib/agda-stdlib/standard-library.agda-lib ]; then
-            echo '/usr/lib/agda-stdlib/standard-library.agda-lib' > agda-lib;
-          else
-            echo 'Agda standard library not found!' && exit 1;
-          fi
+          git clone --depth 1 https://github.com/agda/agda-stdlib.git
+          echo "$PWD/agda-stdlib/standard-library.agda-lib" > agda-lib
 
       - name: Verify Agda files
         working-directory: src
         run: |
           agda --ignore-interfaces --without-K --library-file=agda-lib All.agda
-
