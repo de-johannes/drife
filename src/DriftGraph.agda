@@ -8,29 +8,33 @@ open import Data.Nat                             using (ℕ; suc)
 open import Relation.Nullary.Negation            using (¬_)
 
 ------------------------------------------------------------------------
--- 1. DriftGraph als Record in einer höheren Universe
+-- 1. DriftGraph als Record
 ------------------------------------------------------------------------
 
-record DriftGraph : Set₂ where
+record DriftGraph : Set₁ where
   field
     ledger      : List Dist
+    -- Driftkante, d.h. ∆(δ₁,δ₂) ∈ ledger
     driftEdge   : Dist → Dist → Set
+    -- Aus einem irred-Beweis erzeugt drift die neue Distinktion
     drift       : ∀ (δ₁ δ₂ : Dist) → driftEdge δ₁ δ₂ → Dist
+    -- Irreduzibilitäts-Predikat: δ ∉ prev
     irreducible : Dist → List Dist → Set
 
 open DriftGraph public
 
 ------------------------------------------------------------------------
--- 2. Eine einzelne Instanz G öffnen
+-- 2. Eine konkrete Instanz G
 ------------------------------------------------------------------------
 
 postulate
   G : DriftGraph
 
+-- projectioniert alle Felder auf G
 open DriftGraph G public
 
 ------------------------------------------------------------------------
--- 3. Semantische Zeit T und ihre Eigenschaften
+-- 3. Semantische Zeit T und ihre Axiome
 ------------------------------------------------------------------------
 
 postulate
