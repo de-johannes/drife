@@ -1,9 +1,10 @@
 module FirstDifference where
 
-open import Agda.Primitive   using (Level; lzero; lsuc)
+open import Agda.Primitive using (Level; lzero; lsuc)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Data.Product      using (Σ; _,_; proj₁; proj₂)
-open import Data.Empty        using (⊥)
+open import Data.Product using (Σ; _,_; proj₁; proj₂)
+open import Data.Empty using (⊥)
+open import Relation.Nullary.Negation using (¬_)
 
 -- 1. Pure potential (opaque type)
 postulate
