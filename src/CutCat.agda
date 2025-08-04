@@ -14,29 +14,31 @@ data Cut : Set where
   ◇    : Cut
   mark : Cut → Cut
 
--- Tiefe  → ℕ
+-- Verschachtelungstiefe  → ℕ
 depth : Cut → ℕ
 depth ◇        = zero
 depth (mark c) = suc (depth c)
 
--- Polarity (einfaches Beispiel)
+-- Einfache Polarity-Operation
 neg : Cut → Cut
 neg ◇        = mark ◇
 neg (mark _) = ◇
--- (kein involutions-Lemma mehr)
 
 ------------------------------------------------------------------------
--- 2. ≤-Hilfsbeweise
+-- 2. Basisbeweise zu ≤
 ------------------------------------------------------------------------
 
+-- Reflexivität
 refl≤ : (n : ℕ) → n ≤ n
 refl≤ zero    = z≤n
 refl≤ (suc n) = s≤s (refl≤ n)
 
+-- Transitivität
 ≤-trans : ∀ {i j k} → i ≤ j → j ≤ k → i ≤ k
 ≤-trans z≤n       _             = z≤n
 ≤-trans (s≤s p)  (s≤s q)        = s≤s (≤-trans p q)
 
+-- Links- & Rechts-Einheit für ≤-trans
 ≤-id-left : ∀ {m n} (p : m ≤ n) → ≤-trans p (refl≤ n) ≡ p
 ≤-id-left z≤n     = refl
 ≤-id-left (s≤s p) = cong s≤s (≤-id-left p)
@@ -71,13 +73,13 @@ CutCat : Category lzero lzero
 Obj      CutCat = ℕ
 Hom      CutCat = _≤_
 id       CutCat = refl≤
-_∘_      CutCat = λ {A B C} g f → ≤-trans f g
+_∘_      CutCat = λ {A} {B} {C} g f → ≤-trans f g   -- erst f, dann g
 id-left  CutCat = ≤-id-left
 id-right CutCat = ≤-id-right
 assoc    CutCat = λ _ _ _ → refl
 
 ------------------------------------------------------------------------
--- 5. Kanonischer Ledger-Baum pro Level
+-- 5. Kanonischer Ledger-Baum + funktorische Abbildung
 ------------------------------------------------------------------------
 
 ledgerCut : ℕ → Cut
