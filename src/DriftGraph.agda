@@ -14,14 +14,9 @@ open import Relation.Nullary.Negation            using (¬_)
 record DriftGraph : Set₁ where
   field
     ledger      : List Dist
-    -- Driftkante, d.h. ∆(δ₁,δ₂) ∈ ledger
     driftEdge   : Dist → Dist → Set
-    -- Aus einem irred-Beweis erzeugt drift die neue Distinktion
     drift       : ∀ (δ₁ δ₂ : Dist) → driftEdge δ₁ δ₂ → Dist
-    -- Irreduzibilitäts-Predikat: δ ∉ prev
     irreducible : Dist → List Dist → Set
-
-open DriftGraph public
 
 ------------------------------------------------------------------------
 -- 2. Eine konkrete Instanz G
@@ -30,7 +25,6 @@ open DriftGraph public
 postulate
   G : DriftGraph
 
--- projectioniert alle Felder auf G
 open DriftGraph G public
 
 ------------------------------------------------------------------------
