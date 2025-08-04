@@ -4,14 +4,21 @@ open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
 open import Data.Nat       using (ℕ)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
-open import Data.Nat.Properties using
-  ( ≤-refl
-  ; ≤-trans
-  ; ≤-transˡ-identity
-  ; ≤-transʳ-identity
-  )
 
--- A simple Category record
+-- Our own identity lemmas for ≤-trans
+≤-trans : ∀ {i j k : ℕ} → i ≤ j → j ≤ k → i ≤ k
+≤-trans z≤n       _          = z≤n
+≤-trans (s≤s p) (s≤s q) = s≤s (≤-trans p q)
+
+≤-id-left : ∀ {m n} (p : m ≤ n) → ≤-trans z≤n p ≡ p
+≤-id-left z≤n     = refl
+≤-id-left (s≤s p) = cong s≤s (≤-id-left p)
+
+≤-id-right : ∀ {m n} (p : m ≤ n) → ≤-trans p z≤n ≡ p
+≤-id-right z≤n     = refl
+≤-id-right (s≤s p) = cong s≤s (≤-id-right p)
+
+-- Category record with explicit levels
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
   field
     Obj      : Set ℓ₁
@@ -30,8 +37,8 @@ open Category
 CutCat : Category lzero lzero
 Category.Obj CutCat      = ℕ
 Category.Hom CutCat      = λ m n → m ≤ n
-Category.id  CutCat      = λ m → ≤-refl
+Category.id  CutCat      = λ m → z≤n
 Category._∘_ CutCat      = λ f g → ≤-trans g f
-Category.id-left  CutCat = λ f → ≤-transʳ-identity f
-Category.id-right CutCat = λ f → ≤-transˡ-identity f
+Category.id-left  CutCat = λ f → ≤-id-right f
+Category.id-right CutCat = λ f → ≤-id-left f
 Category.assoc    CutCat = λ h g f → refl
