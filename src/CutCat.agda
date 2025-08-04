@@ -14,26 +14,31 @@ data Cut : Set where
   ◇    : Cut
   mark : Cut → Cut
 
+-- Tiefe der Verschachtelung → ℕ
 depth : Cut → ℕ
 depth ◇        = zero
 depth (mark c) = suc (depth c)
 
+-- Einfache Polarity‐Operation
 neg : Cut → Cut
 neg ◇        = mark ◇
 neg (mark _) = ◇
 
 ------------------------------------------------------------------------
--- 2. Basis‐Lemmata für ≤
+-- 2. Lemmata für die Ordnung ≤
 ------------------------------------------------------------------------
 
+-- Reflexivität
 refl≤ : ∀ n → n ≤ n
 refl≤ zero    = z≤n
 refl≤ (suc n) = s≤s (refl≤ n)
 
+-- Transitivität
 ≤-trans : ∀ {i j k} → i ≤ j → j ≤ k → i ≤ k
 ≤-trans z≤n       _      = z≤n
 ≤-trans (s≤s p)  (s≤s q) = s≤s (≤-trans p q)
 
+-- Einheitsgesetze
 ≤-id-left  : ∀ {m n} (p : m ≤ n) → ≤-trans p (refl≤ n) ≡ p
 ≤-id-left  z≤n     = refl
 ≤-id-left  (s≤s p) = cong s≤s (≤-id-left p)
@@ -42,17 +47,15 @@ refl≤ (suc n) = s≤s (refl≤ n)
 ≤-id-right z≤n     = refl
 ≤-id-right (s≤s p) = cong s≤s (≤-id-right p)
 
+-- Assoziativität von ≤-trans
 trans-assoc
-  : ∀ {A B C D}
-    (f : A ≤ B) (g : B ≤ C) (h : C ≤ D)
-    → ≤-trans (≤-trans f g) h
-      ≡
-      ≤-trans f (≤-trans g h)
-trans-assoc z≤n      q         r         = refl
+  : ∀ {A B C D} (f : A ≤ B) (g : B ≤ C) (h : C ≤ D)
+    → ≤-trans (≤-trans f g) h ≡ ≤-trans f (≤-trans g h)
+trans-assoc z≤n      _         _         = refl
 trans-assoc (s≤s p) (s≤s q) (s≤s r) = cong s≤s (trans-assoc p q r)
 
 ------------------------------------------------------------------------
--- 3. Kategorie‐Record
+-- 3. Das allgemeine Kategorie‐Record
 ------------------------------------------------------------------------
 
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
@@ -70,21 +73,31 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
 open Category public
 
 ------------------------------------------------------------------------
--- 4. CutCat: freie dünne Kategorie auf ℕ
+-- 4. CutCat: die freie, dünne Kategorie auf ℕ
 ------------------------------------------------------------------------
 
 CutCat : Category lzero lzero
+CutCat = record 
+  { Obj      = ℕ
+  ; Hom      = _≤_
+  ; id       = refl≤
+  ; _∘_      = transField
+  ; id-left  = ≤-id-left
+  ; id-right = ≤-id-right
+  ; assoc    = assocField
+  }
+  where
+    transField : {A B C : ℕ} → (g : B ≤ C) → (f : A ≤ B) → A ≤ C
+    transField g f = ≤-trans f g
 
-CutCat .Obj       = ℕ
-CutCat .Hom       = _≤_
-CutCat .id        = refl≤
-CutCat ._∘_ {A} {B} {C} = λ g f → ≤-trans f g
-CutCat .id-left   = ≤-id-left
-CutCat .id-right  = ≤-id-right
-CutCat .assoc     = λ {A}{B}{C}{D} h g f → trans-assoc f g h
+    assocField
+      : {A B C D : ℕ}
+      → (h : C ≤ D) → (g : B ≤ C) → (f : A ≤ B)
+      → A ≤ D
+    assocField h g f = trans-assoc f g h
 
 ------------------------------------------------------------------------
--- 5. Ledger‐Functor ℕ → Cut
+-- 5. Ledger-Funktor ℕ → Cut
 ------------------------------------------------------------------------
 
 ledgerCut : ℕ → Cut
