@@ -5,20 +5,21 @@ open import Data.Nat       using (ℕ)
 open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
--- Define ≤-trans (total, only valid patterns)
+-- Transitivity of ≤
 ≤-trans : ∀ {i j k : ℕ} → i ≤ j → j ≤ k → i ≤ k
 ≤-trans z≤n      _             = z≤n
+≤-trans (s≤s p)  z≤n           = ()
 ≤-trans (s≤s p) (s≤s q)        = s≤s (≤-trans p q)
 
--- Left identity (always total)
+-- Left identity
 ≤-id-left : ∀ {m n} (p : m ≤ n) → ≤-trans z≤n p ≡ p
 ≤-id-left z≤n     = refl
 ≤-id-left (s≤s p) = cong s≤s (≤-id-left p)
 
--- Right identity: impossible case marked with absurd pattern
+-- Right identity (s≤s case is uninhabited)
 ≤-id-right : ∀ {m n} (p : m ≤ n) → ≤-trans p z≤n ≡ p
 ≤-id-right z≤n    = refl
-≤-id-right (s≤s ())
+≤-id-right (s≤s p) = ()
 
 -- Category record
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
