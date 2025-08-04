@@ -6,20 +6,14 @@ jobs:
   agda-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Install Agda
-        run: |
-          sudo apt update
-          sudo apt install -y agda git
+      # Installiere Agda (latest) + die empfohlene Standardbibliothek
+      - uses: wenkokke/setup-agda@v2
+        with:
+          agda-version: latest
+          agda-stdlib-version: recommended
 
-      - name: Fetch Agda standard library
+      # Hauptmodul checken (siehe oben: All.agda importiert alles)
+      - run: agda --ignore-interfaces --without-K All.agda
         working-directory: src
-        run: |
-          git clone --depth 1 https://github.com/agda/agda-stdlib.git
-          echo "$PWD/agda-stdlib/standard-library.agda-lib" > agda-lib
-
-      - name: Verify Agda files
-        working-directory: src
-        run: |
-          agda --ignore-interfaces --without-K --library-file=agda-lib All.agda
