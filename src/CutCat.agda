@@ -5,16 +5,17 @@ open import Data.Nat       using (ℕ)
 open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
--- Define ≤-trans (covers only valid constructor patterns)
+-- Define ≤-trans covering only valid cases
 ≤-trans : ∀ {i j k : ℕ} → i ≤ j → j ≤ k → i ≤ k
-≤-trans z≤n       _             = z≤n
+≤-trans z≤n      _              = z≤n
 ≤-trans (s≤s p) (s≤s q)         = s≤s (≤-trans p q)
 
--- Prove left and right identity for ≤-trans
+-- Left identity (always works)
 ≤-id-left : ∀ {m n} (p : m ≤ n) → ≤-trans z≤n p ≡ p
 ≤-id-left z≤n     = refl
 ≤-id-left (s≤s p) = cong s≤s (≤-id-left p)
 
+-- Right identity: only base case exists (s≤s case is uninhabited)
 ≤-id-right : ∀ {m n} (p : m ≤ n) → ≤-trans p z≤n ≡ p
 ≤-id-right z≤n = refl
 
