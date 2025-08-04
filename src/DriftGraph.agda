@@ -4,8 +4,9 @@ open import Agda.Primitive               using (Level; lzero)
 open import FirstDifference              using (Dist; D0)
 open import Data.List                    using (List; []; _∷_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Data.Nat                     using (ℕ)
+open import Data.Nat                     using (ℕ; suc)
 open import Data.List.Membership.DecPropositional using (_∈_; here; there)
+open import Relation.Nullary.Negation    using (¬_)
 
 -- A DriftGraph is a growing ledger of distinctions with drift edges
 record DriftGraph : Set where
@@ -34,5 +35,5 @@ postulate
 
   T-reducible :
     ∀ {δ : Dist} {prev : List Dist} →
-    (¬ irreducible δ prev) →
+    ¬ (irreducible δ prev) →
     T (δ ∷ prev) ≡ T prev
