@@ -1,0 +1,3 @@
+name: drife
+include: .
+depend: standard-library
