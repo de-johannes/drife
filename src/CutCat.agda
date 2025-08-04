@@ -5,12 +5,11 @@ open import Data.Nat       using (ℕ)
 open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
--- Define ≤-trans with explicit pattern matching that Agda accepts
+-- Define ≤-trans with proper absurd pattern
 ≤-trans : ∀ {i j k : ℕ} → i ≤ j → j ≤ k → i ≤ k
-≤-trans z≤n       _            = z≤n
-≤-trans (s≤s p) q with q
-... | z≤n       = z≤n                     -- logically impossible, but pattern needed
-... | s≤s q'    = s≤s (≤-trans p q')
+≤-trans z≤n       _             = z≤n
+≤-trans (s≤s p) z≤n             = ()
+≤-trans (s≤s p) (s≤s q)         = s≤s (≤-trans p q)
 
 -- Prove left and right identity for ≤-trans
 ≤-id-left : ∀ {m n} (p : m ≤ n) → ≤-trans z≤n p ≡ p
