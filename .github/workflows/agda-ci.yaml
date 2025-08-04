@@ -3,7 +3,7 @@ name: Agda CI
 on: workflow_dispatch
 
 jobs:
-  agda-check:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,20 +13,7 @@ jobs:
           agda-version: latest
           agda-stdlib-version: recommended
 
-      - name: Create .agda-lib for project
+      - name: Compile project
         working-directory: src
         run: |
-          echo "name: drife" > drife.agda-lib
-          echo "include: ." >> drife.agda-lib
-          echo "depend: standard-library" >> drife.agda-lib
-
-      - name: Register drife.agda-lib
-        working-directory: src
-        run: |
-          echo "$PWD/drife.agda-lib" >> $HOME/.agda/libraries
-          echo "drife" >> $HOME/.agda/defaults
-
-      - name: Verify Agda files
-        working-directory: src
-        run: agda --ignore-interfaces --without-K -l drife All.agda
-
+          agda --ignore-interfaces --without-K -l drife All.agda
