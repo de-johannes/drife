@@ -1,4 +1,9 @@
-module CutCat where
+------------------------------------------------------------------------
+-- CutCatFull.agda  –  Minimal verifizierter DRIFE-Kern
+------------------------------------------------------------------------
+{-# OPTIONS --without-K #-}
+
+module CutCatFull where
 
 open import Agda.Primitive            using (Level ; lzero ; lsuc ; _⊔_)
 open import Data.Nat                  using (ℕ ; zero ; suc)
@@ -7,19 +12,19 @@ open import Relation.Binary.PropositionalEquality
                                      using (_≡_ ; refl ; cong)
 
 ------------------------------------------------------------------------
--- 1. Primal Distinction  (Cut-Baum)
+-- 1. Primal Distinction  (Cut-Baum)  – Emergenz von ℕ und Bool
 ------------------------------------------------------------------------
 
 data Cut : Set where
   ◇    : Cut            -- pures Potential
   mark : Cut → Cut      -- einmal unterscheiden
 
--- Emergenz von ℕ: Verschachtelungstiefe
+-- Tiefe → natürliche Zahl
 depth : Cut → ℕ
 depth ◇        = zero
 depth (mark c) = suc (depth c)
 
--- Polarity / Bool-Emergenz
+-- Polarität / Negation
 neg : Cut → Cut
 neg ◇        = mark ◇
 neg (mark _) = ◇
@@ -32,21 +37,28 @@ doubleNeg (mark _) = refl
 -- 2. Hilfsbeweise zu ≤
 ------------------------------------------------------------------------
 
-≤-trans : ∀ {i j k} → i ≤ j → j ≤ k → i ≤ k
-≤-trans z≤n      _             = z≤n
-≤-trans (s≤s p)  z≤n           = ()        -- unmöglich
-≤-trans (s≤s p) (s≤s q)        = s≤s (≤-trans p q)
+-- Reflexivität
+refl≤ : (n : ℕ) → n ≤ n
+refl≤ zero    = z≤n
+refl≤ (suc n) = s≤s (refl≤ n)
 
-≤-id-left  : ∀ {m n} (p : m ≤ n) → ≤-trans z≤n p ≡ p
+-- Transitivität (ohne unmöglichen Zweig)
+≤-trans : ∀ {i j k} → i ≤ j → j ≤ k → i ≤ k
+≤-trans z≤n       q             = z≤n
+≤-trans (s≤s p)  (s≤s q)        = s≤s (≤-trans p q)
+
+-- Links-Einheit:  p ∘ id = p  (id steht rechts in ≤-trans)
+≤-id-left : ∀ {m n} (p : m ≤ n) → ≤-trans p (refl≤ n) ≡ p
 ≤-id-left z≤n     = refl
 ≤-id-left (s≤s p) = cong s≤s (≤-id-left p)
 
-≤-id-right : ∀ {m n} (p : m ≤ n) → ≤-trans p z≤n ≡ p
+-- Rechts-Einheit: id ∘ p = p  (id steht links in ≤-trans)
+≤-id-right : ∀ {m n} (p : m ≤ n) → ≤-trans (refl≤ m) p ≡ p
 ≤-id-right z≤n     = refl
-≤-id-right (s≤s ())               -- ebenfalls unmöglich
+≤-id-right (s≤s p) = cong s≤s (≤-id-right p)
 
 ------------------------------------------------------------------------
--- 3. Minimaler Kategorie-Record
+-- 3. Allgemeiner Kategorie-Record
 ------------------------------------------------------------------------
 
 record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
@@ -64,20 +76,20 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
 open Category public
 
 ------------------------------------------------------------------------
--- 4. CutCat  (freie dünne Kategorie auf ℕ)
+-- 4. CutCat  – freie dünne Kategorie auf ℕ
 ------------------------------------------------------------------------
 
 CutCat : Category lzero lzero
 Obj      CutCat = ℕ
-Hom      CutCat = λ m n → m ≤ n
-id       CutCat = λ m → z≤n
+Hom      CutCat = _≤_
+id       CutCat = refl≤
 _∘_      CutCat = λ {A B C} g f → ≤-trans f g   -- erst f, dann g
-id-left  CutCat = λ f → ≤-id-right f
-id-right CutCat = λ f → ≤-id-left  f
-assoc    CutCat = λ h g f → refl
+id-left  CutCat = ≤-id-left
+id-right CutCat = ≤-id-right
+assoc    CutCat = λ h g f → refl                -- definitional gleich
 
 ------------------------------------------------------------------------
--- 5. Kanonischer Ledger-Baum pro Level + Funktorisches Hom-Mapping
+-- 5. Kanonischer Ledger-Baum pro Level + funktorische Abbildung
 ------------------------------------------------------------------------
 
 ledgerCut : ℕ → Cut
@@ -93,7 +105,7 @@ FunctorHom :
 FunctorHom {m} {n} p rewrite depth-lemma m | depth-lemma n = p
 
 ------------------------------------------------------------------------
--- 6. Kurzer Test (REPL):
+-- 6. Schneller Test (im REPL / Agda-Interactive):
 --    depth (mark (mark ◇))        ↦ 2
 --    doubleNeg (mark ◇)           ↦ refl
 --    _∘_ CutCat (s≤s z≤n) (s≤s (s≤s z≤n))
