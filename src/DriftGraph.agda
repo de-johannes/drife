@@ -1,61 +1,47 @@
 module DriftGraph where
 
-open import Agda.Primitive                          using (Level; lzero)
-open import FirstDifference                         using (Dist; D0)
-open import Data.List                               using (List; []; _∷_)
-open import Relation.Binary.PropositionalEquality   using (_≡_; refl)
-open import Data.Nat                                using (ℕ; suc)
-open import Data.List.Membership.Propositional      using (_∈_; here; there)
-open import Relation.Nullary.Negation               using (¬_)
+open import Agda.Primitive                       using (Level; lzero)
+open import FirstDifference                      using (Dist; D0)
+open import Data.List                            using (List; []; _∷_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Data.Nat                             using (ℕ; suc)
+open import Relation.Nullary.Negation            using (¬_)
 
 ------------------------------------------------------------------------
--- 1. Der DriftGraph-Typ (ledger + Drift–Felder)
+-- 1. DriftGraph als Record in einer höheren Universe
 ------------------------------------------------------------------------
 
--- Wir heben die Universumsstufe an, damit Felder in Set₁ liegen dürfen.
-record DriftGraph : Set₁ where
+record DriftGraph : Set₂ where
   field
-    -- Chronologische Liste aller bisher erzeugten Distinktionen
     ledger      : List Dist
-
-    -- Driftkante zwischen δ₁ und δ₂ genau dann, wenn ∆(δ₁,δ₂) ∈ ledger
-    driftEdge   : Dist → Dist → Set₁
-
-    -- Drift‐Operator: aus einem Irreduzibilitäts‐Beweis entsteht eine neue Distinktion
-    drift       : (δ₁ δ₂ : Dist) → driftEdge δ₁ δ₂ → Dist
-
-    -- Irreduzibilitäts‐Prädikat: δ ∉ previous ledger entries
-    irreducible : Dist → List Dist → Set₁
+    driftEdge   : Dist → Dist → Set
+    drift       : ∀ (δ₁ δ₂ : Dist) → driftEdge δ₁ δ₂ → Dist
+    irreducible : Dist → List Dist → Set
 
 open DriftGraph public
 
 ------------------------------------------------------------------------
--- 2. Ein konkreter DriftGraph  (Postulat)
+-- 2. Eine einzelne Instanz G öffnen
 ------------------------------------------------------------------------
 
--- Wir definieren eine einzelne DriftGraph‐Instanz G, auf der alle
--- Postulate unten basieren.
 postulate
   G : DriftGraph
 
 open DriftGraph G public
 
 ------------------------------------------------------------------------
--- 3. Semantic Time T für G
+-- 3. Semantische Zeit T und ihre Eigenschaften
 ------------------------------------------------------------------------
 
--- T zählt irreduzible Einträge in einer Ledger‐Liste
 postulate
   T : List Dist → ℕ
 
--- Wenn ein neues δ irreduzibel ist, wächst T um genau 1
 postulate
   T-irreducible :
     ∀ {δ prev}
     → irreducible δ prev
     → T (δ ∷ prev) ≡ suc (T prev)
 
--- Andernfalls bleibt T konstant
 postulate
   T-reducible :
     ∀ {δ prev}
