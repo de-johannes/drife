@@ -1,6 +1,6 @@
 module CutCat where
 
-open import Agda.Primitive using (Level; lzero; lsuc)
+open import Agda.Primitive using (Level; lzero; lsuc; _⊔_)
 open import Data.Nat       using (ℕ)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
