@@ -5,13 +5,12 @@ open import Data.Nat       using (ℕ)
 open import Data.Nat.Base  using (_≤_; z≤n; s≤s)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 
--- Define ≤-trans with proper absurd pattern
+-- Define ≤-trans using an absurd pattern on the left-hand side
 ≤-trans : ∀ {i j k : ℕ} → i ≤ j → j ≤ k → i ≤ k
-≤-trans z≤n       _             = z≤n
-≤-trans (s≤s p) z≤n             = ()
-≤-trans (s≤s p) (s≤s q)         = s≤s (≤-trans p q)
+≤-trans z≤n       _               = z≤n
+≤-trans (s≤s p) ()
 
--- Prove left and right identity for ≤-trans
+-- Identity proofs for ≤-trans
 ≤-id-left : ∀ {m n} (p : m ≤ n) → ≤-trans z≤n p ≡ p
 ≤-id-left z≤n     = refl
 ≤-id-left (s≤s p) = cong s≤s (≤-id-left p)
