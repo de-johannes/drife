@@ -6,7 +6,8 @@ open import Data.Nat using (ℕ; zero; suc)
 open import Data.Vec using (Vec; []; _∷_; zipWith)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Relation.Nullary using (¬_)
-open import Data.List.Relation.Unary.Any using (any)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Data.List.Membership.Propositional using (any?) -- statt any
 
 ------------------------------------------------------------------------
 -- 1. Distinctions als Bool-Vektor
@@ -37,38 +38,25 @@ allConjunctions (x ∷ xs) =
 
 irreducible : ∀ {n} → Dist n → List (Dist n) → Set
 irreducible δ prev =
-  ¬ (any (λ d → poles d ≡ poles δ) (allConjunctions prev))
+  ¬ (any? (λ d → poles d ≡ poles δ) (allConjunctions prev))
 
 ------------------------------------------------------------------------
--- 4. DriftGraph-Datentyp
-------------------------------------------------------------------------
-
-record DriftGraph (n : ℕ) : Set where
-  constructor mkGraph
-  field
-    ledger : List (Dist n)
-
-open DriftGraph public
-
-------------------------------------------------------------------------
--- 5. Semantische Zeit T
+-- 4. Semantische Zeit
 ------------------------------------------------------------------------
 
 T : ∀ {n} → List (Dist n) → ℕ
 T [] = zero
 T (δ ∷ prev) with irreducible δ prev
-... | p = suc (T prev)
-... | _ = T prev
+... | irr = suc (T prev)
+... | _   = T prev
 
 ------------------------------------------------------------------------
--- 6. Lemma: Arrow of Time
+-- 5. Arrow of Time Lemma
 ------------------------------------------------------------------------
 
 ArrowOfTime :
-  ∀ {n} (δ : Dist n) (prev : List (Dist n))
-  → T (δ ∷ prev) ≡ T prev
-    ⊎
-    T (δ ∷ prev) ≡ suc (T prev)
+  ∀ {n} (δ : Dist n) (prev : List (Dist n)) →
+  (T (δ ∷ prev) ≡ T prev) ⊎ (T (δ ∷ prev) ≡ suc (T prev))
 ArrowOfTime δ prev with irreducible δ prev
-... | irr = inj₂ refl   -- irreducibel -> tick
-... | _   = inj₁ refl   -- reduzierbar -> kein Tick
+... | irr = inj₂ refl
+... | _   = inj₁ refl
