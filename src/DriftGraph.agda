@@ -1,13 +1,12 @@
 module DriftGraph where
 
 open import Data.Bool using (Bool; _∧_)
-open import Data.List using (List; []; _∷_; map; _++_)
+open import Data.List using (List; []; _∷_; map; _++_; any)
 open import Data.Nat using (ℕ; zero; suc)
 open import Data.Vec using (Vec; []; _∷_; zipWith)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Relation.Nullary using (¬_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Data.List.Membership.Propositional using (any?) -- statt any
 
 ------------------------------------------------------------------------
 -- 1. Distinctions als Bool-Vektor
@@ -38,7 +37,7 @@ allConjunctions (x ∷ xs) =
 
 irreducible : ∀ {n} → Dist n → List (Dist n) → Set
 irreducible δ prev =
-  ¬ (any? (λ d → poles d ≡ poles δ) (allConjunctions prev))
+  ¬ (any (λ d → poles d ≡ poles δ) (allConjunctions prev))
 
 ------------------------------------------------------------------------
 -- 4. Semantische Zeit
