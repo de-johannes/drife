@@ -1,68 +1,74 @@
 module DriftGraph where
 
-open import Agda.Primitive using (Level; lzero)
-open import FirstDifference using (Dist; D0)
-open import Data.List using (List; []; _∷_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
+open import Data.Bool using (Bool; _∧_)
+open import Data.List using (List; []; _∷_; map; _++_)
 open import Data.Nat using (ℕ; zero; suc)
-open import Relation.Nullary.Negation using (¬_)
+open import Data.Vec using (Vec; []; _∷_; zipWith)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Relation.Nullary using (¬_)
+open import Data.List.Relation.Unary.Any using (any)
 
 ------------------------------------------------------------------------
--- 1. DriftGraph als Record
+-- 1. Distinctions als Bool-Vektor
 ------------------------------------------------------------------------
 
-record DriftGraph : Set₁ where
+record Dist (n : ℕ) : Set where
+  constructor mkDist
+  field poles : Vec Bool n
+open Dist public
+
+-- Drift = Boolesches UND der Vektoren
+drift : ∀ {n} → Dist n → Dist n → Dist n
+drift d1 d2 = mkDist (zipWith _∧_ (poles d1) (poles d2))
+
+------------------------------------------------------------------------
+-- 2. Boolesche Konjunktionen aller bisherigen Dists
+------------------------------------------------------------------------
+
+allConjunctions : ∀ {n} → List (Dist n) → List (Dist n)
+allConjunctions []       = []
+allConjunctions (x ∷ xs) =
+  let rec = allConjunctions xs
+  in  x ∷ rec ++ map (drift x) rec
+
+------------------------------------------------------------------------
+-- 3. Irreduzibilität
+------------------------------------------------------------------------
+
+irreducible : ∀ {n} → Dist n → List (Dist n) → Set
+irreducible δ prev =
+  ¬ (any (λ d → poles d ≡ poles δ) (allConjunctions prev))
+
+------------------------------------------------------------------------
+-- 4. DriftGraph-Datentyp
+------------------------------------------------------------------------
+
+record DriftGraph (n : ℕ) : Set where
+  constructor mkGraph
   field
-    ledger      : List Dist
-    driftEdge   : Dist → Dist → Set
-    drift       : ∀ (δ₁ δ₂ : Dist) → driftEdge δ₁ δ₂ → Dist
-    irreducible : Dist → List Dist → Set
+    ledger : List (Dist n)
 
 open DriftGraph public
 
 ------------------------------------------------------------------------
--- 2. Beispielinstanz (leer)
+-- 5. Semantische Zeit T
 ------------------------------------------------------------------------
 
--- Wir definieren eine triviale Instanz, damit das Modul kompiliert.
--- Später kann man echte Drift-Kanten und Ledger einfügen.
-
-emptyGraph : DriftGraph
-emptyGraph = record
-  { ledger      = []
-  ; driftEdge   = λ _ _ → ⊥               -- keine Kanten
-  ; drift       = λ δ₁ δ₂ e → case e of ()
-  ; irreducible = λ δ prev → ⊥            -- alles reducible
-  }
+T : ∀ {n} → List (Dist n) → ℕ
+T [] = zero
+T (δ ∷ prev) with irreducible δ prev
+... | p = suc (T prev)
+... | _ = T prev
 
 ------------------------------------------------------------------------
--- 3. Semantische Zeit T
+-- 6. Lemma: Arrow of Time
 ------------------------------------------------------------------------
 
--- Semantische Zeit = Anzahl irreduzibler Distinctions in der Liste
-
-T : (irr : Dist → List Dist → Set) → List Dist → ℕ
-T irr [] = zero
-T irr (δ ∷ prev) with irr δ prev
-... | p = suc (T irr prev)  -- irreducible
-... | _ = T irr prev        -- reducible (leer, weil Set 0 oder 1?)
-
-------------------------------------------------------------------------
--- 4. Lemma: irreducible → Zeit tickt
-------------------------------------------------------------------------
-
-T-irreducible :
-  ∀ {δ prev} {irr : Dist → List Dist → Set}
-  → irr δ prev
-  → T irr (δ ∷ prev) ≡ suc (T irr prev)
-T-irreducible p = refl
-
-------------------------------------------------------------------------
--- 5. Lemma: ¬irreducible → Zeit bleibt stehen
-------------------------------------------------------------------------
-
-T-reducible :
-  ∀ {δ prev} {irr : Dist → List Dist → Set}
-  → ¬ (irr δ prev)
-  → T irr (δ ∷ prev) ≡ T irr prev
-T-reducible _ = refl
+ArrowOfTime :
+  ∀ {n} (δ : Dist n) (prev : List (Dist n))
+  → T (δ ∷ prev) ≡ T prev
+    ⊎
+    T (δ ∷ prev) ≡ suc (T prev)
+ArrowOfTime δ prev with irreducible δ prev
+... | irr = inj₂ refl   -- irreducibel -> tick
+... | _   = inj₁ refl   -- reduzierbar -> kein Tick
